@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -16,14 +17,17 @@ namespace ShopFront
         public Startup(IHostingEnvironment env)
         {
             var builder = new ConfigurationBuilder()
-                .SetBasePath(env.ContentRootPath)
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json")
                 .AddEnvironmentVariables();
             Configuration = builder.Build();
+
+            Console.WriteLine($"SHOP_PRODUCTS_API_URL = {Configuration["SHOP_PRODUCTS_API_URL"]}");
+            Console.WriteLine($"SHOP_RECOMMANDATIONS_API_URL = {Configuration["SHOP_RECOMMANDATIONS_API_URL"]}");
+            Console.WriteLine($"SHOP_RATINGS_API_URL = {Configuration["SHOP_RATINGS_API_URL"]}");
         }
 
-        public IConfigurationRoot Configuration { get; }
+       public static IConfigurationRoot Configuration { get; set; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)

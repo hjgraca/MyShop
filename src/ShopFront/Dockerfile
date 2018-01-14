@@ -1,13 +1,21 @@
-FROM microsoft/dotnet:1.0.0-preview2-sdk
-
+FROM microsoft/aspnetcore-build:2.0 AS build-env
 WORKDIR /app
-ENTRYPOINT ["dotnet", "run"]
+
+# Copy csproj and restore as distinct layers
+COPY *.csproj ./
+RUN dotnet restore
+
+# Copy everything else and build
+COPY . ./
+RUN dotnet publish -c Release -o out
+
+# Build runtime image
+FROM microsoft/aspnetcore:2.0
+WORKDIR /app
+COPY --from=build-env /app/out .
+
 EXPOSE 5000
 
 ENV ASPNETCORE_URLS http://0.0.0.0:5000
 
-COPY project.json ./
-RUN ["dotnet", "restore"]
-
-COPY . /app
-RUN ["dotnet", "build"]
+ENTRYPOINT ["dotnet", "ShopFront.dll"]

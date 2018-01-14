@@ -1,6 +1,6 @@
 @inject Microsoft.Extensions.Options.IOptions<ShopFront.Models.Settings> settings
 @{
-    ViewData["Title"] = "CI/CD, test number 2!";
+    ViewData["Title"] = Environment.MachineName;
 }
 
 <div class="row">
@@ -32,9 +32,9 @@
             var recommendationsApiPlaceholder = $("#RecommendationsApiPlaceholder");
             var ratingsApiPlaceholder = $("#RatingsApiPlaceholder");
 
-            var productsApiUrl = "api/products";
-            var ratingsApiUrl = "api/ratings";
-            var recommendationsApiUrl = "api/recommendations";
+            var productsApiUrl = "@settings.Value.ProductsApiUrl";
+            var ratingsApiUrl = "@settings.Value.RatingsApiUrl";
+            var recommendationsApiUrl = "@settings.Value.RecommendationsApiUrl";
 
             productsApiPlaceholder.text("loading...");
             recommendationsApiPlaceholder.text("loading...");
