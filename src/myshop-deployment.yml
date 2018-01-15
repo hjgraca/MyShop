@@ -1,26 +1,119 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: myshop-deployment
+  name: products-api
 spec:
-  minReadySeconds: 10
+  replicas: 1
   template:
     metadata:
-      labels: 
-        name: myshop-deployment
+      labels:
+        app: products-api
     spec:
       containers:
-      - name: proxy
-        image: bhacr-microsoft.azurecr.io/shop/nginx-proxy:BuildNumber
+      - name: products-api
+        image: hjgraca/products-api:v1
         ports:
-        - containerPort: 80
-      - name: products
-        image: bhacr-microsoft.azurecr.io/shop/products-api:BuildNumber
-      - name: ratings
-        image: bhacr-microsoft.azurecr.io/shop/ratings-api:BuildNumber
-      - name: recommendations
-        image: bhacr-microsoft.azurecr.io/shop/recommendations-api:BuildNumber
-      - name: shop
-        image: bhacr-microsoft.azurecr.io/shop/front:BuildNumber
-      imagePullSecrets: 
-        - name: bhacr
+        - containerPort: 5001
+          name: products
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: products-api
+spec:
+  ports:
+  - port: 5001
+  selector:
+    app: products-api
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: ratings-api
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: ratings-api
+    spec:
+      containers:
+      - name: ratings-api
+        image: hjgraca/ratings-api:v1
+        ports:
+        - containerPort: 5002
+          name: ratings
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ratings-api
+spec:
+  ports:
+  - port: 5002
+  selector:
+    app: ratings-api
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: recommendations-api
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: recommendations-api
+    spec:
+      containers:
+      - name: recommendations-api
+        image: hjgraca/recommendations-api:v1
+        ports:
+        - containerPort: 5003
+          name: recommendations
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: recommendations-api
+spec:
+  ports:
+  - port: 5003
+  selector:
+    app: recommendations-api
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: shopfront
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: shopfront
+    spec:
+      containers:
+      - name: shopfront
+        image: hjgraca/shopfront:v1
+        ports:
+        - containerPort: 5000
+        env:
+        - name: SHOP_PRODUCTS_API_URL
+          value: http://products-api.svc.cluster.local:5001/api/products
+        - name: SHOP_RATINGS_API_URL
+          value: http://ratings-api.svc.cluster.local:5001/api/ratings
+        - name: SHOP_RECOMMANDATIONS_API_URL
+          value: http://recommendations-api.svc.cluster.local:5001/api/recommendations
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shopfront
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 5000
+  selector:
+    app: shopfront
